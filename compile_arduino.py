@@ -1,26 +1,37 @@
 import os
 import subprocess
 
-def compile_arduino(sketch_code, sketch_name="esp_code", fqbn="esp8266:esp8266:nodemcuv2"):
-    # Create folder structure
-    sketch_dir = os.path.join(os.getcwd(), sketch_name)
+def compile_arduino(code_str):
+    # Define directory where Arduino sketch will be written
+    sketch_dir = "sketch"
     os.makedirs(sketch_dir, exist_ok=True)
 
-    # Write sketch code to .ino file
-    ino_path = os.path.join(sketch_dir, f"{sketch_name}.ino")
-    with open(ino_path, "w") as f:
-        f.write(sketch_code)
+    # Path for the Arduino sketch
+    sketch_path = os.path.join(sketch_dir, "sketch.ino")
 
-    # Compile using arduino-cli
+    # Write the code to the .ino file
+    with open(sketch_path, "w") as f:
+        f.write(code_str)
+
+    # Define the path to arduino-cli (make sure it's installed and accessible)
+    arduino_cli_path = "./bin/arduino-cli"  # Update this if necessary
+
+    # Define the command for compiling the sketch
     compile_cmd = [
-        "./bin/arduino-cli",
+        arduino_cli_path,
         "compile",
-        "--fqbn", fqbn,
-        sketch_name
+        "--fqbn",
+        "arduino:avr:uno",  # Target board, change if needed
+        sketch_dir
     ]
 
     try:
-        result = subprocess.run(compile_cmd, capture_output=True, text=True, check=True)
+        # Run the compile command and capture output
+        result = subprocess.run(
+            compile_cmd, capture_output=True, text=True, check=True
+        )
+        # Return success and the result output
         return True, result.stdout
     except subprocess.CalledProcessError as e:
+        # Return failure and error output
         return False, e.stderr
